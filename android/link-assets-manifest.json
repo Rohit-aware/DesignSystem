@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/HindMadurai-Bold.ttf",
+      "sha1": "b527a0c9b82d5a596632a6c7d503c755a8519dd3"
+    },
+    {
+      "path": "src/assets/fonts/HindMadurai-Medium.ttf",
+      "sha1": "4ba5ab203aae2d0e6fa4271979308fe120989c36"
+    },
+    {
+      "path": "src/assets/fonts/HindMadurai-Regular.ttf",
+      "sha1": "7185e53c120fc664d57d945df617e0af4c1117d1"
+    },
+    {
+      "path": "src/assets/fonts/HindMadurai-SemiBold.ttf",
+      "sha1": "8ee222e0013595756249b6bbf54066ea346b1d03"
+    },
+    {
+      "path": "src/assets/fonts/Inter-Bold.ttf",
+      "sha1": "48747b7a60086f97af0d373febcbd1f1bee87f17"
+    },
+    {
+      "path": "src/assets/fonts/Inter-Medium.ttf",
+      "sha1": "a418a8ba73bbcfa8c131c426ab836d78457afa9b"
+    },
+    {
+      "path": "src/assets/fonts/Inter-Regular.ttf",
+      "sha1": "7237d9cf55f177702066a28a4dde1e4c7e8ab576"
+    },
+    {
+      "path": "src/assets/fonts/Inter-SemiBold.ttf",
+      "sha1": "431007da316de60d85174aeec9b8389b5c73e7d6"
+    }
+  ]
+}

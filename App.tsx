@@ -1,45 +1,23 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
+ * App.tsx
+ * WHAT A JUNIOR LEARNS:
+ *   - activateFonts() called BEFORE render — sets font config globally
+ *   - ProjectThemeProvider wraps everything — brand colors + followSystem
+ *   - StyleShowcaseScreen is the full learning reference
  */
+import React from 'react';
+import { StyleShowcaseScreen } from './src/screens/StyleShowcase';
+import { buildProjectTheme } from './src/theme/projectTheme';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from '@ds';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <ThemeProvider buildTheme={buildProjectTheme}>
+        <StyleShowcaseScreen />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;
