@@ -57,7 +57,7 @@ export type ColorScale = string & {
 /**
  * Full color palette (raw colors, not semantic).
  */
-export type ColorPalette = {
+export type BasePalette = {
   primary: ColorScale;
   secondary: ColorScale;
   neutral: ColorScale;
@@ -66,6 +66,8 @@ export type ColorPalette = {
   error: ColorScale;
   info: ColorScale;
 };
+
+export type ColorPalette = BasePalette & Record<string, ColorScale>;
 
 /**
  * Semantic color system (context-aware usage).
@@ -80,6 +82,8 @@ export type SemanticColors = {
   /** App background */
   background: string;
 
+  primary: string;
+  secondary: string;
   /** Secondary background (cards, sections) */
   backgroundSecondary: string;
 

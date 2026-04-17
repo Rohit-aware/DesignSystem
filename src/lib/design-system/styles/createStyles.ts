@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from 'react';
 import type { ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { ThemeContext } from '../providers/ThemeProvider';
-import type { Theme } from '../types';
+import type { Theme, ResolvedStyles } from '../types';
 
 // ─── Core types ───────────────────────────────────────────────────────────────
 
@@ -37,6 +37,19 @@ export type NamedStyles<T> = { [P in keyof T]: StyleEntry };
 export type RetrunTypeOfCreateStyle =
   Record<string, AnyStyle | ((...args: any[]) => AnyStyle)>;
 
+function wrapStyleFn(fn: StyleFn) {
+  const cache = new Map<string, AnyStyle>();
+
+  return (...args: any[]) => {
+    const key = JSON.stringify(args);
+
+    if (cache.has(key)) return cache.get(key)!;
+
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
 // ─── createStyles - Cached Theme Style Factory ────────────────────────────────
 
 /**
@@ -92,12 +105,22 @@ export function createStyles<T extends RetrunTypeOfCreateStyle>(
   function getStyles(theme: Theme): T {
     const cached = cache.get(theme);
     if (cached) return cached;
-
     const styles = factory(theme);
-    cache.set(theme, styles);
-    return styles;
-  }
 
+    const wrapped = {} as T;
+
+    for (const key in styles) {
+      const value = styles[key];
+
+      if (typeof value === 'function') {
+        wrapped[key] = wrapStyleFn(value as StyleFn) as any;
+      } else {
+        wrapped[key] = value as any;
+      }
+    }
+
+    return Object.freeze(wrapped);
+  }
   /**
    * Hook version — reactive to theme changes
    *
@@ -105,10 +128,8 @@ export function createStyles<T extends RetrunTypeOfCreateStyle>(
    */
   function useStyles(): T {
     const { theme } = useContext(ThemeContext);
-
-    return useMemo(() => getStyles(theme), [theme]);
+    return getStyles(theme);
   }
-
   return { useStyles, getStyles };
 }
 

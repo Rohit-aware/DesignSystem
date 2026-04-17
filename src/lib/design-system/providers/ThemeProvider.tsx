@@ -3,13 +3,12 @@ import { Appearance } from 'react-native';
 import type { Theme, ThemeMode, FontConfig } from '../types';
 import { buildTheme, lightTheme } from '../theme/buildTheme';
 
-// ─── Context shape (split: data vs actions to minimise re-renders) ────────────
 
 /**
- * Theme state exposed via context
+ * Theme data exposed via context.
  */
 type ThemeData = {
-  /** Current resolved theme object */
+  /** Fully resolved theme object */
   theme: Theme;
 
   /** Current theme mode */
@@ -17,25 +16,26 @@ type ThemeData = {
 };
 
 /**
- * Theme actions exposed via context
+ * Theme mutation actions.
+ *
+ * These are stable references and do not trigger re-renders.
  */
 type ThemeActions = {
-  /** Manually set theme mode */
+  /** Set theme mode manually */
   setMode: (mode: ThemeMode) => void;
 
   /** Toggle between light and dark */
   toggleTheme: () => void;
 };
 
-/**
- * Full context value (data + actions)
- */
+/** Combined context value */
 type ThemeContextValue = ThemeData & ThemeActions;
 
 /**
- * Internal React context for theming
+ * Internal theme context.
  *
- * ⚠️ Do not use directly — use `useTheme()` hook instead
+ * ⚠️ Do not consume directly.
+ * Use {@link useTheme}.
  */
 const ThemeContext = React.createContext<ThemeContextValue>({
   theme: lightTheme,
@@ -44,66 +44,151 @@ const ThemeContext = React.createContext<ThemeContextValue>({
   toggleTheme: () => { },
 });
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
+   📦 Provider Props
+────────────────────────────────────────────────────────────────── */
 
 /**
- * ThemeProvider — supplies theme context to the app.
- *
- * Supports:
- * - Light / Dark mode
- * - System theme following
- * - Controlled mode (via prop)
- * - Font configuration overrides
- *
- * @example
- * <ThemeProvider>
- *   <App />
- * </ThemeProvider>
- *
- * @example (controlled mode)
- * <ThemeProvider mode="dark">
- *   <App />
- * </ThemeProvider>
- *
- * @example (custom fonts)
- * <ThemeProvider fontConfig={interFontConfig}>
- *   <App />
- * </ThemeProvider>
+ * Props for {@link ThemeProvider}.
  */
 type ThemeProviderProps = {
+  /** React subtree */
   children: React.ReactNode;
 
   /**
-   * Controlled mode.
+   * Controlled theme mode.
    *
-   * If provided:
-   * - Overrides internal state
-   * - Disables system following
+   * Overrides internal state and disables system syncing.
    */
   mode?: ThemeMode;
 
   /**
-   * Follow system appearance (default: true)
+   * Follow system appearance.
    *
-   * Only applies when `mode` is NOT provided.
+   * @default true
    */
   followSystem?: boolean;
 
   /**
-   * Override font configuration for this subtree
+   * Optional font configuration.
+   *
+   * Used only with default builder.
+   *
+   * ⚠️ Keep reference stable.
    */
   fontConfig?: FontConfig;
 
   /**
-   * Custom theme builder (advanced use)
+   * Custom theme builder.
    *
-   * Allows full override of theme creation logic
+   * Signature:
+   * `(mode: ThemeMode) => Theme`
+   *
+   * @example
+   * <ThemeProvider buildTheme={buildProjectTheme} />
    */
-  buildTheme?: (mode: ThemeMode, fontConfig?: FontConfig) => Theme;
+  buildTheme?: (mode: ThemeMode) => Theme;
 };
 
+/* ────────────────────────────────────────────────────────────────
+   ⚡ Internal Cache
+────────────────────────────────────────────────────────────────── */
+
 /**
- * ThemeProvider implementation
+ * Cache of theme pairs per builder.
+ *
+ * @internal
+ */
+const builderCache = new WeakMap<
+  (mode: ThemeMode) => Theme,
+  Readonly<Record<ThemeMode, Theme>>
+>();
+
+/**
+ * Returns cached light/dark themes for a builder.
+ *
+ * @internal
+ */
+function resolveThemePair(
+  builder: (mode: ThemeMode) => Theme,
+): Readonly<Record<ThemeMode, Theme>> {
+  const cached = builderCache.get(builder);
+  if (cached) return cached;
+
+  const pair = Object.freeze({
+    light: builder('light'),
+    dark: builder('dark'),
+  });
+
+  builderCache.set(builder, pair);
+  return pair;
+}
+
+/**
+ * Default theme builder factory.
+ *
+ * Injects optional font config.
+ *
+ * @internal
+ */
+function makeDefaultBuilder(
+  fontConfig?: FontConfig,
+): (mode: ThemeMode) => Theme {
+  return (mode: ThemeMode) => buildTheme(mode, fontConfig);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   🎨 ThemeProvider
+────────────────────────────────────────────────────────────────── */
+
+/**
+ * Provides theme context to the React tree.
+ *
+ * ---
+ * ### Features
+ * - Light / Dark mode support
+ * - System appearance syncing
+ * - Theme caching (per builder)
+ * - Optional font configuration
+ *
+ * ---
+ * ### Usage
+ *
+ * #### Basic
+ * ```tsx
+ * <ThemeProvider>
+ *   <App />
+ * </ThemeProvider>
+ * ```
+ *
+ * #### With custom theme
+ * ```tsx
+ * <ThemeProvider buildTheme={buildProjectTheme}>
+ *   <App />
+ * </ThemeProvider>
+ * ```
+ *
+ * #### Controlled mode
+ * ```tsx
+ * <ThemeProvider mode="dark">
+ *   <App />
+ * </ThemeProvider>
+ * ```
+ *
+ * ---
+ * ### Behavior
+ *
+ * Mode priority:
+ * 1. `mode` prop
+ * 2. System (if enabled)
+ * 3. `'light'`
+ *
+ * ---
+ * ### Performance
+ *
+ * - Themes are cached per builder
+ * - Context updates only when `mode` or `theme` changes
+ * - Builders must be pure
  */
 export function ThemeProvider({
   children,
@@ -112,27 +197,26 @@ export function ThemeProvider({
   fontConfig,
   buildTheme: buildThemeProp,
 }: ThemeProviderProps) {
-  /**
-   * Reads current system theme (light/dark)
-   */
-  const getSystemMode = (): ThemeMode =>
-    Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
-
-  /**
-   * Internal mode state
-   *
-   * Priority:
-   * 1. Controlled prop (modeProp)
-   * 2. System theme (if followSystem = true)
-   * 3. Fallback → light
-   */
-  const [mode, setModeState] = React.useState<ThemeMode>(
-    modeProp ?? (followSystem ? getSystemMode() : 'light'),
+  const getSystemMode = React.useCallback(
+    (): ThemeMode =>
+      Appearance.getColorScheme() === 'dark' ? 'dark' : 'light',
+    [],
   );
 
-  /**
-   * Sync with system theme changes (uncontrolled mode only)
-   */
+  const [mode, setModeState] = React.useState<ThemeMode>(
+    () => modeProp ?? (followSystem ? getSystemMode() : 'light'),
+  );
+
+  const setMode = React.useCallback(
+    (next: ThemeMode) => {
+      setModeState(next);
+    }, []);
+
+  const toggleTheme = React.useCallback(
+    () => {
+      setModeState(prev => (prev === 'light' ? 'dark' : 'light'));
+    }, []);
+
   React.useEffect(() => {
     if (modeProp !== undefined || !followSystem) return;
 
@@ -143,51 +227,21 @@ export function ThemeProvider({
     return () => sub.remove();
   }, [modeProp, followSystem]);
 
-  /**
-   * Sync controlled mode prop → internal state
-   */
   React.useEffect(() => {
     if (modeProp !== undefined) {
       setModeState(modeProp);
     }
   }, [modeProp]);
 
-  /**
-   * Set theme mode manually
-   */
-  const setMode = React.useCallback((next: ThemeMode) => {
-    setModeState(next);
-  }, []);
-
-  /**
-   * Toggle light ↔ dark
-   */
-  const toggleTheme = React.useCallback(() => {
-    setModeState(prev => (prev === 'light' ? 'dark' : 'light'));
-  }, []);
-
-  /**
-   * Theme instance
-   *
-   * Recomputes ONLY when:
-   * - mode changes
-   * - fontConfig reference changes
-   * - buildTheme function changes
-   *
-   * ⚠️ Important:
-   * Keep `fontConfig` reference stable to avoid unnecessary recomputation.
-   */
-  const theme = React.useMemo(
-    () => (buildThemeProp ?? buildTheme)(mode, fontConfig),
-    [mode, fontConfig, buildThemeProp]
+  const builder = React.useMemo(
+    () => buildThemeProp ?? makeDefaultBuilder(fontConfig),
+    [buildThemeProp, fontConfig],
   );
 
-  /**
-   * Memoized context value
-   *
-   * Prevents unnecessary re-renders in consumers
-   */
-  const value = React.useMemo<ThemeContextValue>(
+  const themePair = resolveThemePair(builder);
+  const theme = themePair[mode];
+
+  const value = React.useMemo(
     () => ({ theme, mode, setMode, toggleTheme }),
     [theme, mode, setMode, toggleTheme],
   );
@@ -195,34 +249,35 @@ export function ThemeProvider({
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-// ─── Primary hook ─────────────────────────────────────────────────────────────
-
 /**
- * useTheme — access theme + actions
+ * Access the current theme and controls.
  *
- * Returns:
- * - theme → full theme object
- * - mode → current mode
- * - setMode → manually set mode
- * - toggleTheme → switch modes
- *
- * @example
- * const { theme, toggleTheme } = useTheme();
+ * @returns Theme + mode + actions
  *
  * @example
  * const { theme } = useTheme();
- * theme.colors.background
  *
- * ⚠️ Must be used inside <ThemeProvider>
+ * @example
+ * const { toggleTheme } = useTheme();
+ *
+ * @throws Error in development if used outside provider
  */
 export function useTheme(): ThemeContextValue {
   const ctx = React.useContext(ThemeContext);
 
-  if (__DEV__ && !ctx) {
-    throw new Error('useTheme() must be called inside <ThemeProvider>');
+  if (__DEV__ && ctx === undefined) {
+    throw new Error(
+      '[DS] useTheme() must be used inside <ThemeProvider>',
+    );
   }
 
   return ctx;
 }
 
 export { ThemeContext };
+export type {
+  ThemeProviderProps,
+  ThemeContextValue,
+  ThemeData,
+  ThemeActions,
+};

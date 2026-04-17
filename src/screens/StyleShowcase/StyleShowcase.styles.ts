@@ -9,7 +9,9 @@
  *   5. WeakMap cache — factory runs at most twice (light + dark), never more
  * ─────────────────────────────────────────────────────────────────────────────
  */
-import { createStyles, merge, textStyle } from '@ds';
+import {
+  createStyles, merge, textStyle
+} from '@ds';
 import {
   border, borderB, rounded,
   px, py, pt, pb, gap, flex, layout, align, center,
@@ -17,10 +19,13 @@ import {
 
 export const showcaseStyles = createStyles((t) => {
   // ── Destructure once — factory runs at most twice (light+dark), cached ────
-  const { colors, spacing, radius, shadows, typography } = t;
+  const { colors, spacing, radius, shadows, typography, palette } = t;
   const { scale, weights, families, lineHeights } = typography;
 
   return {
+    utilLable: {
+      ...merge(textStyle(t, 'sm', 'bold', 'primary'))
+    },
     // ─── Layout ───────────────────────────────────────────────────────────────
     // LEARN: flex.one from staticHelpers — frozen constant, zero allocation
     screen: {
@@ -180,7 +185,7 @@ export const showcaseStyles = createStyles((t) => {
     radiusBox: {
       width: 52,
       height: 52,
-      backgroundColor: colors.interactive,
+      backgroundColor: palette.primary[50],
       ...merge(align.center, center),
     },
     radiusLabel: {
@@ -203,7 +208,7 @@ export const showcaseStyles = createStyles((t) => {
     btn: (variant: 'primary' | 'secondary' | 'ghost' | 'danger') => ({
       ...merge(center, rounded(t, 'lg'), px(t, 4), py(t, 2.5)),
       backgroundColor: {
-        primary: colors.interactive,
+        primary: colors.textPrimary,
         secondary: colors.backgroundSecondary,
         ghost: 'transparent',
         danger: colors.errorSubtle,
@@ -328,13 +333,13 @@ export const showcaseStyles = createStyles((t) => {
     a11yLabel: {
       fontSize: scale.sm,
       color: colors.textPrimary,
-      fontFamily: families.body.medium,
+      fontFamily: families.display.semibold,
       fontWeight: weights.medium,
     },
     a11yValue: {
       fontSize: scale.sm,
       color: colors.interactive,
-      fontFamily: families.mono.regular,
+      fontFamily: families.mono.medium,
     },
   }
 });

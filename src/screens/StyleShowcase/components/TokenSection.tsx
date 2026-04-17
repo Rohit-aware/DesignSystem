@@ -33,7 +33,7 @@ export function SpacingSection() {
 }
 
 // ─── Shadows ──────────────────────────────────────────────────────────────────
-const SHADOW_KEYS = ['none','xs','sm','md','lg','xl'] as const;
+const SHADOW_KEYS = ['none', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
 
 export function ShadowSection() {
   const styles = showcaseStyles.useStyles();
@@ -53,7 +53,7 @@ export function ShadowSection() {
 }
 
 // ─── Border Radius ────────────────────────────────────────────────────────────
-const RADIUS_KEYS = ['none','xs','sm','md','lg','xl','2xl','full'] as const;
+const RADIUS_KEYS = ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', 'full'] as const;
 
 export function RadiusSection() {
   const styles = showcaseStyles.useStyles();
@@ -61,12 +61,14 @@ export function RadiusSection() {
   return (
     <Section title="Border Radius Scale">
       <View style={styles.radiusRow}>
-        {RADIUS_KEYS.map(k => (
-          <View key={k} style={styles.radiusWrap}>
-            <View style={[styles.radiusBox, { borderRadius: theme.radius[k] }]} />
-            <Text style={styles.radiusLabel}>{k}</Text>
-          </View>
-        ))}
+        {RADIUS_KEYS.map((k) => {
+          return (
+            <View key={k} style={styles.radiusWrap}>
+              <View style={[styles.radiusBox, { borderRadius: theme.radius[k] }]} />
+              <Text style={styles.radiusLabel}>{k}</Text>
+            </View>
+          )
+        })}
       </View>
     </Section>
   );

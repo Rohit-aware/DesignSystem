@@ -43,6 +43,8 @@ import { palette } from './colors';
  * → semantic feedback colors for system states
  */
 export const lightColors: SemanticColors = {
+  primary: palette.primary,
+  secondary: palette.secondary,
   background: palette.neutral[50],
   backgroundSecondary: palette.neutral[100],
   backgroundTertiary: palette.neutral[200],
@@ -97,6 +99,8 @@ export const lightColors: SemanticColors = {
  * - success/warning/error use softened opacity variants
  */
 export const darkColors: SemanticColors = {
+  primary: palette.primary,
+  secondary: palette.secondary,
   background: palette.neutral[900],
   backgroundSecondary: palette.neutral[800],
   backgroundTertiary: palette.neutral[700],

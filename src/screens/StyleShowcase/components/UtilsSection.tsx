@@ -52,24 +52,22 @@ export function UtilsSection() {
   ];
 
   return (
-    <>
-      <Section title="Responsive + Device Utils">
-        {/* LEARN: styles.responsiveBox(breakpoint) — conditional style with breakpoint arg */}
-        <View style={styles.responsiveBox(breakpoint)}>
-          <Text style={styles.responsiveText}>
-            Current breakpoint: {breakpoint.toUpperCase()}
-          </Text>
-        </View>
+    <Section title="Responsive + Device Utils">
+      {/* LEARN: styles.responsiveBox(breakpoint) — conditional style with breakpoint arg */}
+      <View style={styles.responsiveBox(breakpoint)}>
+        <Text style={styles.responsiveText}>
+          Current breakpoint: {breakpoint.toUpperCase()}
+        </Text>
+      </View>
 
-        <View style={styles.a11yCard}>
-          {rows.map(({ label, value }) => (
-            <View key={label} style={[styles.a11yRow, { marginBottom: 8 }]}>
-              <Text style={styles.a11yLabel}>{label}</Text>
-              <Text style={styles.a11yValue}>{value}</Text>
-            </View>
-          ))}
-        </View>
-      </Section>
-    </>
+      <View style={styles.a11yCard}>
+        {rows.map(({ label, value, }) => (
+          <View key={label} style={[styles.a11yRow, { marginBottom: 8 }]}>
+            <Text style={[styles.a11yLabel, styles.utilLable]}>{label}</Text>
+            <Text style={[styles.a11yValue]}>{value}</Text>
+          </View>
+        ))}
+      </View>
+    </Section>
   );
 }

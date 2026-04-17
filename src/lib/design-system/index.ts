@@ -139,8 +139,6 @@ export {
   createFontConfig,
   resolveFontFamily,
   resolveFamilies,
-  getActiveFontConfig,
-  setActiveFontConfig,
 } from './theme/fonts/fontConfig';
 
 

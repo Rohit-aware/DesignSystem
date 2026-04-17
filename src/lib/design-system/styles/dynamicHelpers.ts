@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import type { ViewStyle, TextStyle } from 'react-native';
-import type { Theme, SpacingKey, RadiusKey, ShadowKey, ShadowToken, AnyStyle, KnownFontRoles, FontVariantConfig, } from '../types';
+import type { Theme, SpacingKey, RadiusKey, ShadowKey, ShadowToken, AnyStyle, KnownFontRoles, FontVariantConfig, ColorPalette, } from '../types';
 
 /**
  * ─────────────────────────────────────────────────────────────

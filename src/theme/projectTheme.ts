@@ -1,4 +1,4 @@
-import { createFontConfig, setActiveFontConfig, createProjectTheme } from '@ds';
+import { createFontConfig, createProjectTheme } from '@ds';
 
 /* ────────────────────────────────────────────────────────────────
    🎨 PROJECT THEME CONFIGURATION
@@ -84,9 +84,11 @@ export const projectFontConfig = createFontConfig(
  */
 export const buildProjectTheme = createProjectTheme(
   {
-    primary: '#01A48F',
-    secondary: '#1F6CDF',
-    overrides: {
+    palette: {
+      primary: '#01A48F',
+      secondary: '#1F6CDF',
+    },
+    light: {
       textPrimary: '#231F20',
       textSecondary: '#5A5758',
       textTertiary: '#918F8F',
@@ -97,33 +99,7 @@ export const buildProjectTheme = createProjectTheme(
       error: '#D20A0A',
       success: '#01A841',
       warning: '#FFA726',
-    },
+    }
   },
   projectFontConfig,
 );
-
-/* ────────────────────────────────────────────────────────────────
-   ⚡ STEP 3 — FONT ACTIVATION (APP BOOTSTRAP ONLY)
-────────────────────────────────────────────────────────────────── */
-
-/**
- * Activates font configuration globally.
- *
- * WHY THIS EXISTS:
- * - Theme system resolves font families at runtime
- * - Font config must be set BEFORE first render
- *
- * ⚠️ CRITICAL RULE:
- * Call this ONLY in entry file (index.js / main.tsx)
- *
- * ❌ NEVER call inside React components
- * ❌ NEVER call after app mount
- *
- * Correct usage:
- *   import { activateFonts } from './theme/projectTheme';
- *   activateFonts();
- *   AppRegistry.registerComponent(...)
- */
-export function activateFonts(): void {
-  setActiveFontConfig(projectFontConfig);
-}

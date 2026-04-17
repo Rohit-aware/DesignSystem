@@ -62,44 +62,18 @@ import type {
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @group Project SDK › Inputs
- *
- * Minimal configuration required to generate a full design system theme.
- */
-export type ProjectColorInput = {
+export type ProjectThemeInput = {
+    palette?: {
+        primary?: string;
+        secondary?: string;
+    };
 
-    /**
-     * @group Project SDK › Inputs › Brand
-     *
-     * Primary brand color (required)
-     *
-     * Used for:
-     * - interactive elements
-     * - focus states
-     * - active UI accents
-     *
-     * A full 50–900 scale is automatically generated.
-     */
-    primary: string;
+    light: Partial<SemanticColors>;
+    dark?: Partial<SemanticColors>;
 
-    /**
-     * @group Project SDK › Inputs › Brand
-     *
-     * Secondary brand color (optional)
-     *
-     * Falls back to system default palette if omitted.
-     */
-    secondary: string;
-
-    /**
-     * @group Project SDK › Inputs › Overrides
-     *
-     * Semantic overrides for edge-case design requirements.
-     *
-     * Applied LAST (highest priority).
-     */
     overrides?: Partial<SemanticColors>;
+
+    extraColors?: Record<string, string>;
 };
 
 /**
@@ -133,61 +107,34 @@ export type ProjectColors = {
  *   primary: "#01A48F",
  * });
  */
-export function createProjectColors(input: ProjectColorInput): ProjectColors {
-
-    const primaryScale = createHexScale(input.primary);
-
-    const secondaryScale = input.secondary
-        ? createHexScale(input.secondary)
-        : palette.secondary;
-
-    const projectPalette: ColorPalette = {
-        ...palette,
-        primary: primaryScale,
-        secondary: secondaryScale,
-    };
-
-    // ────────────────────────────────────────────────────────────────────────
-    // LIGHT MODE
-    // ────────────────────────────────────────────────────────────────────────
+export function createProjectColors(input: ProjectThemeInput): ProjectColors {
     const light: SemanticColors = {
         ...lightColors,
-
-        interactive: primaryScale[500],
-        interactiveHover: primaryScale[600],
-        interactivePressed: primaryScale[700],
-        interactiveDisabled: palette.neutral[300],
-
-        textLink: primaryScale[600],
-        borderFocus: primaryScale[500],
-
+        ...input.light,
         ...input.overrides,
     };
 
-    // ────────────────────────────────────────────────────────────────────────
-    // DARK MODE
-    // ────────────────────────────────────────────────────────────────────────
     const dark: SemanticColors = {
         ...darkColors,
-
-        interactive: primaryScale[400],
-        interactiveHover: primaryScale[300],
-        interactivePressed: primaryScale[200],
-        interactiveDisabled: palette.neutral[600],
-
-        textLink: primaryScale[400],
-        borderFocus: primaryScale[400],
-
+        ...input.dark,
         ...input.overrides,
     };
 
     return {
         light,
         dark,
-        palette: projectPalette,
+        palette: {
+            ...palette,
+            ...(input.palette?.primary && {
+                primary: createHexScale(input.palette.primary),
+            }),
+            ...(input.palette?.secondary && {
+                secondary: createHexScale(input.palette.secondary),
+            }),
+            ...input.extraColors,
+        },
     };
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // THEME FACTORY (SDK ENTRY POINT)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -208,7 +155,7 @@ export function createProjectColors(input: ProjectColorInput): ProjectColors {
  *   createProjectTheme({ primary: "#00AEEF" }, fontConfig);
  */
 export function createProjectTheme(
-    input: ProjectColorInput,
+    input: ProjectThemeInput,
     fontConfig: FontConfig,
 ): (mode: ThemeMode) => Theme {
 
