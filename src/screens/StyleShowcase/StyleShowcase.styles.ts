@@ -185,7 +185,7 @@ export const showcaseStyles = createStyles((t) => {
     radiusBox: {
       width: 52,
       height: 52,
-      backgroundColor: palette.primary[50],
+      backgroundColor: palette.secondary,
       ...merge(align.center, center),
     },
     radiusLabel: {

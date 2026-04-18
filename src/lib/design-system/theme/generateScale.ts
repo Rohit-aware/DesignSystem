@@ -1,50 +1,6 @@
 import type { ColorScale } from '@ds';
 import { OpacityStep } from '@ds/types';
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
-function hexToHsl(hex: string): [number, number, number] {
-    const clean = hex.replace('#', '');
-    const r = parseInt(clean.slice(0, 2), 16) / 255;
-    const g = parseInt(clean.slice(2, 4), 16) / 255;
-    const b = parseInt(clean.slice(4, 6), 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const delta = max - min;
-
-    let h = 0;
-    let s = 0;
-    const l = (max + min) / 2;
-
-    if (delta !== 0) {
-        s = delta / (1 - Math.abs(2 * l - 1));
-        switch (max) {
-            case r: h = ((g - b) / delta + (g < b ? 6 : 0)) / 6; break;
-            case g: h = ((b - r) / delta + 2) / 6; break;
-            case b: h = ((r - g) / delta + 4) / 6; break;
-        }
-    }
-
-    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
-}
-
-function hslToHex(h: number, s: number, l: number): string {
-    const sn = s / 100;
-    const ln = l / 100;
-    const a = sn * Math.min(ln, 1 - ln);
-
-    const f = (n: number) => {
-        const k = (n + h / 30) % 12;
-        const color = ln - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-        return Math.round(255 * color).toString(16).padStart(2, '0');
-    };
-
-    return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
-}
-
-// ─── Internal computation (not exported) ──────────────────────────────────────
-
 const OPACITY_STEPS: readonly OpacityStep[] = [
     5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
     55, 60, 65, 70, 75, 80, 85, 90, 95, 100

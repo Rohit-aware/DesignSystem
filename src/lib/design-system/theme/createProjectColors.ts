@@ -4,52 +4,12 @@
  * @group Project SDK
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * DESIGN SYSTEM SDK - PROJECT THEME BUILDER
+ * DESIGN SYSTEM SDK - PROJECT THEME BUILDER (ENHANCED)
  * ─────────────────────────────────────────────────────────────────────────────
- *
- * This module is the high-level entry point for creating a full theme system
- * from minimal brand inputs.
- *
- * It abstracts:
- *   • Color scale generation
- *   • Semantic mapping (light/dark)
- *   • Theme construction
- *   • Font integration
- *
- * Result:
- *   → A production-ready Theme object compatible with the DS core system
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * HOW TO THINK ABOUT THIS FILE
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * This is NOT a utility file.
- * This is a "factory API".
- *
- * You do NOT modify internal logic in apps.
- * You only configure inputs.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * USAGE LEVELS
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * LEVEL 1 (most common):
- *   createProjectTheme({ primary: "#00AEEF" }, fontConfig)
- *
- * LEVEL 2 (advanced branding):
- *   add secondary + overrides
- *
- * LEVEL 3 (system customization):
- *   override semantic colors directly
  */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// IMPORTS
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { createHexScale } from './generateScale';
 import { lightColors, darkColors, palette } from '@ds';
-import { buildTheme } from '@ds';
 import type {
     SemanticColors,
     ColorPalette,
@@ -58,126 +18,149 @@ import type {
     FontConfig,
 } from '@ds';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Enhanced Types for Flexible Configuration ────────────────────────────────
 
-export type ProjectThemeInput = {
-    palette?: {
-        primary?: string;
-        secondary?: string;
-    };
+export type CustomPaletteInput = Record<string, string>;
 
-    light: Partial<SemanticColors>;
-    dark?: Partial<SemanticColors>;
+export type ProjectColorConfig<
+    TLightColors extends Partial<SemanticColors> = Partial<SemanticColors>,
+    TDarkColors extends Partial<SemanticColors> = Partial<SemanticColors>,
+    TCustomPalette extends CustomPaletteInput = CustomPaletteInput,
+> = {
+    /** Primary brand color (required) - auto generates 50-900 scale */
+    primary: string;
 
+    /** Secondary brand color (optional) - auto generates scale */
+    secondary?: string;
+
+    /** Custom palette colors - each generates its own scale */
+    customPalette?: TCustomPalette;
+
+    /** User-defined light mode semantic colors */
+    lightColors: TLightColors;
+
+    /** User-defined dark mode semantic colors */
+    darkColors: TDarkColors;
+
+    /** Overrides applied to BOTH modes (highest priority) */
     overrides?: Partial<SemanticColors>;
-
-    extraColors?: Record<string, string>;
 };
 
-/**
- * @group Project SDK › Output
- *
- * Fully resolved color system used by the Theme engine.
- */
-export type ProjectColors = {
-    light: SemanticColors;
-    dark: SemanticColors;
-    palette: ColorPalette;
+// Legacy support for simple config
+export type ProjectColorInput = {
+    primary: string;
+    secondary?: string;
+    overrides?: Partial<SemanticColors>;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COLOR SYSTEM FACTORY
-// ─────────────────────────────────────────────────────────────────────────────
+export type ProjectColors<
+    TLight = SemanticColors,
+    TDark = SemanticColors,
+    TPalette = ColorPalette
+> = {
+    light: TLight;
+    dark: TDark;
+    palette: TPalette;
+};
+
+// ─── Enhanced Color System Factory ────────────────────────────────────────────
 
 /**
- * @group Project SDK › Factory
- *
- * Builds a complete semantic color system from minimal inputs.
- *
- * Pipeline:
- *   1. Generate color scales
- *   2. Merge with base palette
- *   3. Map to semantic roles
- *   4. Apply overrides
- *
- * @example
- * const colors = createProjectColors({
- *   primary: "#01A48F",
- * });
+ * Creates a complete color system with user-defined light/dark colors
  */
-export function createProjectColors(input: ProjectThemeInput): ProjectColors {
-    const light: SemanticColors = {
-        ...lightColors,
-        ...input.light,
-        ...input.overrides,
+export function createProjectColors<
+    TLightColors extends Partial<SemanticColors>,
+    TDarkColors extends Partial<SemanticColors>,
+    TCustomPalette extends CustomPaletteInput,
+>(
+    config: ProjectColorConfig<TLightColors, TDarkColors, TCustomPalette>
+): ProjectColors<
+    TLightColors & SemanticColors,
+    TDarkColors & SemanticColors,
+    ColorPalette & { [K in keyof TCustomPalette]: ReturnType<typeof createHexScale> }
+> {
+    // Generate primary scale
+    const primaryScale = createHexScale(config.primary);
+
+    // Generate secondary scale
+    const secondaryScale = config.secondary
+        ? createHexScale(config.secondary)
+        : palette.secondary;
+
+    // Build custom scales
+    const customScales = {} as Record<string, ReturnType<typeof createHexScale>>;
+    if (config.customPalette) {
+        for (const [key, value] of Object.entries(config.customPalette)) {
+            customScales[key] = createHexScale(value);
+        }
+    }
+
+    // Merge complete palette
+    const projectPalette = {
+        ...palette,
+        primary: primaryScale,
+        secondary: secondaryScale,
+        ...customScales,
     };
 
+    // Build light mode (user colors + defaults + overrides)
+    const light: SemanticColors = {
+        ...lightColors, // System defaults
+        ...config.lightColors, // User's light mode colors
+        ...config.overrides, // Global overrides
+    };
+
+    // Build dark mode (user colors + defaults + overrides)
     const dark: SemanticColors = {
-        ...darkColors,
-        ...input.dark,
-        ...input.overrides,
+        ...darkColors, // System defaults
+        ...config.darkColors, // User's dark mode colors
+        ...config.overrides, // Global overrides
     };
 
     return {
-        light,
-        dark,
-        palette: {
-            ...palette,
-            ...(input.palette?.primary && {
-                primary: createHexScale(input.palette.primary),
-            }),
-            ...(input.palette?.secondary && {
-                secondary: createHexScale(input.palette.secondary),
-            }),
-            ...input.extraColors,
-        },
+        light: light as TLightColors & SemanticColors,
+        dark: dark as TDarkColors & SemanticColors,
+        palette: projectPalette as any,
     };
 }
-// ─────────────────────────────────────────────────────────────────────────────
-// THEME FACTORY (SDK ENTRY POINT)
-// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Enhanced Theme Factory ───────────────────────────────────────────────────
 
 /**
- * @group Project SDK › Factory
- *
- * Creates a production-ready Theme builder function.
- *
- * This function:
- *   • Precomputes light/dark themes
- *   • Freezes objects for immutability
- *   • Injects project colors + fonts
- *   • Eliminates runtime theme computation
- *
- * @example
- * export const buildProjectTheme =
- *   createProjectTheme({ primary: "#00AEEF" }, fontConfig);
+ * Creates a production-ready Theme builder with full TypeScript inference
  */
-export function createProjectTheme(
-    input: ProjectThemeInput,
+export function createProjectTheme<
+    TLightColors extends Partial<SemanticColors>,
+    TDarkColors extends Partial<SemanticColors>,
+    TCustomPalette extends CustomPaletteInput,
+>(
+    config: ProjectColorConfig<TLightColors, TDarkColors, TCustomPalette>,
     fontConfig: FontConfig,
-): (mode: ThemeMode) => Theme {
+) {
+    const colors = createProjectColors(config);
 
-    const colors = createProjectColors(input);
+    type ThemeType = Theme & {
+        colors: typeof colors.light;
+        palette: typeof colors.palette;
+    };
 
-    const themes: Record<ThemeMode, Theme> = {
+    // Import buildTheme dynamically to avoid circular deps
+    const { buildTheme } = require('@ds') as {
+        buildTheme: (mode: ThemeMode, fontConfig: FontConfig) => Omit<Theme, 'colors' | 'palette'>;
+    };
+
+    const themes: Record<ThemeMode, ThemeType> = {
         light: Object.freeze({
             ...buildTheme('light', fontConfig),
             colors: colors.light,
             palette: colors.palette,
-        }),
+        }) as ThemeType,
         dark: Object.freeze({
             ...buildTheme('dark', fontConfig),
             colors: colors.dark,
             palette: colors.palette,
-        }),
+        }) as unknown as ThemeType,
     };
 
-    /**
-     * @group Project SDK › Runtime
-     *
-     * Returns precomputed theme instance (no allocations).
-     */
-    return (mode: ThemeMode) => themes[mode];
+    return (mode: ThemeMode): ThemeType => themes[mode];
 }

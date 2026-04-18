@@ -1,45 +1,11 @@
+// projectTheme.ts
+
 import { createFontConfig, createProjectTheme } from '@ds';
 
 /* ────────────────────────────────────────────────────────────────
-   🎨 PROJECT THEME CONFIGURATION
-   ────────────────────────────────────────────────────────────────
-   This file is the ONLY project-specific entrypoint for:
-   - Fonts
-   - Brand colors
-   - Semantic overrides
-   - Theme initialization
-
-   💡 Design Principle:
-   → Core design system is reusable
-   → This file defines “brand identity layer”
-
-   ⚠️ Lifecycle Rule:
-   - Fonts MUST be activated BEFORE React mounts (index.js / main entry)
-   - Theme factory is safe to pass into <ThemeProvider />
+   🔤 FONT CONFIGURATION
 ────────────────────────────────────────────────────────────────── */
 
-/* ────────────────────────────────────────────────────────────────
-   🔤 STEP 1 — FONT SYSTEM CONFIGURATION
-────────────────────────────────────────────────────────────────── */
-
-/**
- * Project font configuration
- *
- * Roles:
- * - display → headings, hero text
- * - body    → paragraphs, UI text
- * - mono    → code / technical content
- *
- * ⚠️ IMPORTANT:
- * Variant keys MUST match actual font file names (without .ttf extension)
- *
- * Example:
- *   Inter-SemiBold.ttf → 'Inter-SemiBold'
- *
- * Setup:
- * Run once after adding fonts:
- *   npx react-native-asset
- */
 export const projectFontConfig = createFontConfig(
   {
     display: 'Inter',
@@ -63,43 +29,101 @@ export const projectFontConfig = createFontConfig(
 );
 
 /* ────────────────────────────────────────────────────────────────
-   🎨 STEP 2 — BRAND COLOR SYSTEM
+   🎨 ENHANCED THEME CONFIGURATION
+   Now with full control over light/dark modes
 ────────────────────────────────────────────────────────────────── */
 
-/**
- * Theme builder for the project.
- *
- * Input model:
- * - primary   → main brand color (buttons, focus, links)
- * - secondary → optional accent color
- * - overrides → direct semantic overrides (highest priority)
- *
- * Color system behavior:
- * - primary/secondary automatically generate 50–900 scales
- * - semantic tokens inherit from design system defaults
- * - overrides apply last (final authority layer)
- *
- * ⚠️ Override rule:
- * Only use overrides for truly brand-specific deviations.
- */
 export const buildProjectTheme = createProjectTheme(
   {
-    palette: {
-      primary: '#01A48F',
-      secondary: '#1F6CDF',
+    primary: '#01A48F',
+    secondary: '#1F6CDF',
+
+    // Custom palette with auto-generated scales
+    customPalette: {
+      accent: '#FF6B6B',
+      brandSecondary: '#4ECDC4',
+      // Now accessible as theme.palette.accent[500]
     },
-    light: {
+
+    // LIGHT MODE - Full control
+    lightColors: {
+      background: '#FAFAFA',
+      backgroundSecondary: '#F5F5F5',
+      backgroundTertiary: '#EEEEEE',
+      surface: '#FFFFFF',
+      surfaceElevated: '#FFFFFF',
+      overlay: 'rgba(0, 0, 0, 0.5)',
+
       textPrimary: '#231F20',
       textSecondary: '#5A5758',
       textTertiary: '#918F8F',
+      textDisabled: '#C4C4C4',
+      textInverse: '#FFFFFF',
+      textLink: '#01A48F',
+
       border: '#EAE3E3',
-      background: '#FAFAFA',
-      backgroundSecondary: '#F5F5F5',
-      surface: '#FFFFFF',
-      error: '#D20A0A',
+      borderStrong: '#D0C9C9',
+      borderFocus: '#01A48F',
+
+      interactive: '#01A48F',
+      interactiveHover: '#018F7C',
+      interactivePressed: '#017A69',
+      interactiveDisabled: '#E0E0E0',
+
       success: '#01A841',
+      successSubtle: '#E6F7EC',
       warning: '#FFA726',
-    }
+      warningSubtle: '#FFF3E0',
+      error: '#D20A0A',
+      errorSubtle: '#FDE8E8',
+      info: '#1F6CDF',
+      infoSubtle: '#E8F0FE',
+    },
+
+    // DARK MODE - Full control
+    darkColors: {
+      background: '#121212',
+      backgroundSecondary: '#1E1E1E',
+      backgroundTertiary: '#2C2C2C',
+      surface: '#1E1E1E',
+      surfaceElevated: '#2C2C2C',
+      overlay: 'rgba(0, 0, 0, 0.7)',
+
+      textPrimary: '#FFFFFF',
+      textSecondary: '#B0B0B0',
+      textTertiary: '#808080',
+      textDisabled: '#4A4A4A',
+      textInverse: '#121212',
+      textLink: '#01A48F',
+
+      border: '#2C2C2C',
+      borderStrong: '#404040',
+      borderFocus: '#01A48F',
+
+      interactive: '#01A48F',
+      interactiveHover: '#02B3A0',
+      interactivePressed: '#01C4B1',
+      interactiveDisabled: '#3A3A3A',
+
+      success: '#02C852',
+      successSubtle: '#0A2E1A',
+      warning: '#FFB74D',
+      warningSubtle: '#3A2A10',
+      error: '#F44336',
+      errorSubtle: '#3A1010',
+      info: '#4285F4',
+      infoSubtle: '#102A4A',
+    },
+
+    // Global overrides (applied to BOTH modes)
+    overrides: {
+      // Example: Force same error color in both modes
+      // error: '#D20A0A',
+    },
+
   },
   projectFontConfig,
 );
+
+// Export theme type for use in components
+export type AppTheme = ReturnType<typeof buildProjectTheme>;
