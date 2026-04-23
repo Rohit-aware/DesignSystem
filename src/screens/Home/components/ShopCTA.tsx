@@ -24,6 +24,7 @@ const useStyles = createStyles((theme) => ({
     paddingHorizontal: theme.spacing.xl,
     alignItems: "center" as const,
     gap: theme.spacing.md,
+    borderRadius: theme.spacing.md
   },
   eyebrow: {
     color: theme.colors.accent,

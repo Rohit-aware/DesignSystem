@@ -1,0 +1,36 @@
+android/.gradle/
+dist/
+build/
+.bundle/
+vendor/
+coverage/
+*.log
+*.lock
+*.png
+*.jpg
+*.mp4
+*.zip
+
+# dependencies
+
+# react native native builds
+ios/Pods/
+android/build/
+android/app/build/
+
+# caches
+.bundle/
+.gradle/
+
+# old / unused
+src_old/
+vendor/
+
+# outputs
+dist/
+build/
+coverage/
+
+# misc
+*.log
+*.lock
