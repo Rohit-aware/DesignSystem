@@ -1,6 +1,9 @@
 import React, { memo } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { createStyles, fontConfig } from "@/theme";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStackParamList } from "@/routes/types";
 
 export type CartItemData = {
   id: string;
@@ -9,6 +12,53 @@ export type CartItemData = {
   image: string;
   quantity: number;
 };
+
+
+type Props = {
+  item: CartItemData;
+  onIncrease: (id: string) => void;
+  onDecrease: (id: string) => void;
+  onRemove: (id: string) => void;
+};
+
+export const CartItemCard = memo(
+  function CartItemCard({ item, onIncrease, onDecrease, onRemove }: Props) {
+    const styles = useStyles();
+    const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+
+    const handleCardPress = React.useCallback(
+      () => {
+        navigation.navigate("ProductDetails", { product: item as any });
+      }, []);
+
+    return (
+      <TouchableOpacity style={styles.card} onPress={handleCardPress}>
+        <Image source={{ uri: item.image }} style={styles.image} />
+        <View style={styles.body}>
+          <View style={styles.topRow}>
+            <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
+            <TouchableOpacity style={styles.removeBtn} onPress={() => onRemove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.removeTxt}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.bottomRow}>
+            <Text style={styles.price}>₹{(item.price * item.quantity).toLocaleString("en-IN")}</Text>
+            <View style={styles.qtyRow}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => onDecrease(item.id)}>
+                <Text style={styles.qtyBtnTxt}>−</Text>
+              </TouchableOpacity>
+              <View style={styles.qtyVal}>
+                <Text style={styles.qtyTxt}>{item.quantity}</Text>
+              </View>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => onIncrease(item.id)}>
+                <Text style={styles.qtyBtnTxt}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  });
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -99,42 +149,3 @@ const useStyles = createStyles((theme) => ({
     ...fontConfig.InterSemiBoldSm,
   },
 }));
-
-type Props = {
-  item: CartItemData;
-  onIncrease: (id: string) => void;
-  onDecrease: (id: string) => void;
-  onRemove: (id: string) => void;
-};
-
-export const CartItemCard = memo(function CartItemCard({ item, onIncrease, onDecrease, onRemove }: Props) {
-  const styles = useStyles();
-
-  return (
-    <View style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <View style={styles.body}>
-        <View style={styles.topRow}>
-          <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
-          <TouchableOpacity style={styles.removeBtn} onPress={() => onRemove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={styles.removeTxt}>✕</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.bottomRow}>
-          <Text style={styles.price}>₹{(item.price * item.quantity).toLocaleString("en-IN")}</Text>
-          <View style={styles.qtyRow}>
-            <TouchableOpacity style={styles.qtyBtn} onPress={() => onDecrease(item.id)}>
-              <Text style={styles.qtyBtnTxt}>−</Text>
-            </TouchableOpacity>
-            <View style={styles.qtyVal}>
-              <Text style={styles.qtyTxt}>{item.quantity}</Text>
-            </View>
-            <TouchableOpacity style={styles.qtyBtn} onPress={() => onIncrease(item.id)}>
-              <Text style={styles.qtyBtnTxt}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-});

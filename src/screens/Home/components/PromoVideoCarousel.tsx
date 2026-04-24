@@ -1,13 +1,9 @@
-import { createStyles } from '@/theme';
+import { createStyles, useTheme } from '@/theme';
 import { PromoVideoSection } from './PromoVideoSection';
-import React, { memo, useCallback, useRef, useState } from 'react';
-import { Animated, Dimensions, NativeScrollEvent, NativeSyntheticEvent, View, } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, useWindowDimensions, View, } from 'react-native';
 
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const ITEM_WIDTH = SCREEN_WIDTH * 0.78;
-const SNAP_INTERVAL = ITEM_WIDTH;
-const SIDE_PADDING = (SCREEN_WIDTH - ITEM_WIDTH) / 2;
 
 
 export type VideoItem = {
@@ -47,8 +43,26 @@ const PromoVideoCarousel = memo(function PromoVideoCarousel({
   aspectRatio = 16 / 9,
 }: PromoVideoCarouselProps) {
   const styles = useStyles();
+  const flatListRef = useRef<Animated.FlatList<VideoItem>>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const ITEM_WIDTH = SCREEN_WIDTH * 0.78;
+  const SNAP_INTERVAL = ITEM_WIDTH;
+  const SIDE_PADDING = (SCREEN_WIDTH - ITEM_WIDTH) / 2;
+
+  // ── Orientation Sync ──────────────────────────────────────────────────
+  // When orientation changes, we need to ensure the current active index
+  // remains centered by recalculating the scroll offset.
+  useEffect(() => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({
+        offset: activeIndex * SNAP_INTERVAL,
+        animated: false,
+      });
+    }
+  }, [SCREEN_WIDTH, SNAP_INTERVAL, activeIndex]);
 
 
   const onScroll = Animated.event(
@@ -61,7 +75,7 @@ const PromoVideoCarousel = memo(function PromoVideoCarousel({
       const idx = Math.round(e.nativeEvent.contentOffset.x / SNAP_INTERVAL);
       setActiveIndex(Math.max(0, Math.min(idx, videos.length - 1)));
     },
-    [videos.length],
+    [videos.length, SNAP_INTERVAL],
   );
 
 
@@ -106,7 +120,7 @@ const PromoVideoCarousel = memo(function PromoVideoCarousel({
         </Animated.View>
       );
     },
-    [isVisible, activeIndex, scrollX, aspectRatio, styles.card],
+    [isVisible, activeIndex, scrollX, aspectRatio, styles.card, SNAP_INTERVAL, ITEM_WIDTH],
   );
 
   const keyExtractor = useCallback((item: VideoItem) => item.id, []);
@@ -116,6 +130,7 @@ const PromoVideoCarousel = memo(function PromoVideoCarousel({
   return (
     <View style={styles.container}>
       <Animated.FlatList
+        ref={flatListRef}
         data={videos}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -131,7 +146,9 @@ const PromoVideoCarousel = memo(function PromoVideoCarousel({
         maxToRenderPerBatch={3}
         initialNumToRender={2}
         windowSize={3}
+        extraData={activeIndex}
       />
+
 
       {videos.length > 1 && (
         <View style={styles.pagination}>

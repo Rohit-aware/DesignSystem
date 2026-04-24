@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { FlatList, ListRenderItem, StatusBar, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, ListRenderItem, StatusBar, useWindowDimensions, View } from 'react-native';
 import { useTheme, createStyles } from '@rohit-dev/design-system';
 import { useHomeSections, type HomeSection } from './hooks/useHomeSections';
 import { Header } from './components/Header';
@@ -18,6 +18,9 @@ export function HomeScreen() {
   const { theme } = useTheme();
   const styles = useScreenStyles();
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
 
   const {
     sections,
@@ -94,6 +97,13 @@ export function HomeScreen() {
     [activeCategoryId, onCategorySelect, visibleIds]
   );
 
+  // Combine multiple states that should trigger a list refresh
+  const extraData = useMemo(() => ({
+    visibleIds,
+    isLandscape,
+    activeCategoryId
+  }), [visibleIds, isLandscape, activeCategoryId]);
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <StatusBar
@@ -105,11 +115,10 @@ export function HomeScreen() {
         data={sections}
         keyExtractor={keyExtractor}
         renderItem={renderSection}
+        extraData={extraData}
         showsVerticalScrollIndicator={false}
         bounces
         // ── Viewability-driven video autoplay ────────────────────────────
-        // FlatList tracks which sections are ≥70% visible and feeds that
-        // into the PROMO_VIDEO component via the `visibleIds` set.
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         // Performance optimizations
@@ -121,6 +130,7 @@ export function HomeScreen() {
     </SafeAreaView>
   );
 }
+
 
 
 const useScreenStyles = createStyles((theme) => ({

@@ -146,7 +146,7 @@ export function useHomeSections() {
         data: { videos: SAMPLE_VIDEO },
       },
       {
-        id: 'strip-2',
+        id: 'strip-5',
         type: 'STRIP',
       },
     ],
