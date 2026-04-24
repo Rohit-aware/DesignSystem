@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, ListRenderItem, StatusBar, useWindowDimensions, View } from 'react-native';
-import { useTheme, createStyles } from '@rohit-dev/design-system';
 import { useHomeSections, type HomeSection } from './hooks/useHomeSections';
 import { Header } from './components/Header';
 import { BannerCarousel } from './components/BannerCarousel';
@@ -12,6 +11,7 @@ import { ShopCTA } from './components/ShopCTA';
 import { PromoVideoCarousel } from './components/PromoVideoCarousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PromoVideoSection } from './components/PromoVideoSection';
+import { createStyles, useTheme } from '@/theme';
 
 
 export function HomeScreen() {

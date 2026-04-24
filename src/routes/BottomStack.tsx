@@ -3,7 +3,7 @@ import { HomeScreen } from "@/screens/Home";
 import { CartScreen } from "@/screens/Cart";
 import { BottomStackParamList } from "./types";
 import { GrooveScreen } from "@/screens/Groove";
-import { platform } from "@rohit-dev/design-system";
+import { platform } from "@rn-lab/design-system";
 import { TabIcon } from "./components/TabIcon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";

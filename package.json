@@ -13,7 +13,7 @@
     "@lodev09/react-native-true-sheet": "^3.10.0",
     "@react-navigation/bottom-tabs": "7.15.9",
     "@react-navigation/native-stack": "7.14.11",
-    "@rohit-dev/design-system": "./package",
+    "@rn-lab/design-system": "1.0.3",
     "react": "19.2.0",
     "react-native": "0.83.2",
     "react-native-safe-area-context": "5.7.0",

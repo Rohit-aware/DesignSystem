@@ -1,4 +1,4 @@
-import { createProjectTheme, createFontConfig, createThemeKit } from "@rohit-dev/design-system";
+import { createProjectTheme, createFontConfig, createThemeKit } from "@rn-lab/design-system";
 
 export const projectTheme = createProjectTheme({
     lightColors: {

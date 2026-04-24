@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import type { FlatList } from "react-native";
-import { useTheme } from "@rohit-dev/design-system";
+import { useTheme } from "@rn-lab/design-system";
 
 export function useBannerCarousel(count: number, intervalMs = 4000) {
   const [activeIndex, setActiveIndex] = useState(0);

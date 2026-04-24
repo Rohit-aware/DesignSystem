@@ -1,7 +1,7 @@
 import React from 'react'
 import { projectTheme } from './theme'
 import MainStack from './routes/MainStack'
-import { ThemeProvider } from '@rohit-dev/design-system'
+import { ThemeProvider } from '@rn-lab/design-system'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 const AppEntry = () => {
